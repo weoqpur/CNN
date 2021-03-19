@@ -20,3 +20,20 @@ print("conv2d.shape", conv2d.shape)
 print(conv2d.numpy().reshape(2,2))
 plt.imshow(conv2d.numpy().reshape(2,2), cmap='gray')
 plt.show()
+
+
+
+print("image.shape", image.shape)
+
+weight = np.array([[[[1., 10., -1.]], [[1., 10., -1.]]],
+                    [[[1., 10., -1.]],[[1., 10., -1.]]]])
+print("weight.shape", weight.shape)
+weight_init = tf.constant_initializer(weight)
+conv2d = keras.layers.Conv2D(filters=3, kernel_size=2, padding='SAME',
+                            kernel_initializer=weight_init)(image)
+print("con2d.shape", conv2d.shape)
+feature_maps= np.swapaxes(conv2d, 0, 3)
+for i, feature_map in enumerate(feature_maps):
+    print(feature_map.reshape(3,3))
+    plt.subplot(1, 3, i+1), plt.imshow(feature_map.reshape(3,3), cmap='gray')
+plt.show()
