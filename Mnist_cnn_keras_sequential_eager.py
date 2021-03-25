@@ -25,8 +25,11 @@ mnist = keras.datasets.mnist
 
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 
+# 데이터를 0과 1로 구분하기 위해 255로 나눔
 train_images = train_images.astype(np.float32) / 255.
 test_images = test_images.astype(np.float32) / 255.
+
+# axis -1은 마지막 인덱스로 채널을 추가해 줌
 train_images = np.expand_dims(train_images, axis = -1)
 test_images = np.expand_dims(test_images, axis = -1)
 
@@ -56,5 +59,34 @@ def create_model():
     # 과적합 : 이미 주어진 데이터를 분석하는 능력은 뛰어나나 새로운 데이터를 분석하는 능력은 떨어지는 현상
     # 과적합 현상을 방지하기 위해 드롭아웃 방법으로 정규화 시켜 줌
     model.add(keras.layers.Dropout(0.4))
+    # 레이어를 한 번 더 생성
     model.add(keras.layers.Dense(10))
     return model
+model = create_model()
+model.summary()
+
+def loss_fn(model, images, labels):
+    # 이미지의 드랍아웃을 적용
+    logits = model(images, training = True)
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits =logits, labels = labels))
+    return loss
+
+def grad(model, images, labels):
+    with tf.GradientTape() as tape:
+        loss = loss_fn(model, images, labels)
+        # 테이프를 거꾸로 감아서 gradient를 계산해 줌
+    return tape.gradient(loss, model.variables)
+
+# 아담옵티마이저로 가중치를 조절
+optimizer = tf.optimizers.Adam(learning_rate = learning_rate)
+
+def evaluate(model, images, labels):
+    # 트레이닝을 하는 단계가 아님
+    logits = model(images, training = False)
+    #                               결과와                      정답 둘이 비교 같으면 맞고 다르면 틀림
+    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
+    # 위 연산의 평균
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return accuracy
+
+checkpoint = tf.train.Checkpoint(cnn=model)
