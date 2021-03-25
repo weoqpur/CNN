@@ -90,3 +90,4 @@ def evaluate(model, images, labels):
     return accuracy
 
 checkpoint = tf.train.Checkpoint(cnn=model)
+#13:54
